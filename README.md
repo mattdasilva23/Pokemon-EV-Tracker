@@ -126,6 +126,7 @@ The tracker file is stored as JSON and is fairly trivial to include in other
 projects, or directly using Javascript.
 
 ## Issues, Contact etc.
+
 `ev-tracker` was hacked together very quickly to provide a fairly minimal set
 of functionality for my own personal needs. If you use this and have any 
 issues then please let me know.

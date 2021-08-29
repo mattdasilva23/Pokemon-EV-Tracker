@@ -1,3 +1,4 @@
+
 EV Tracker Issues, Features and Bugs:
 
 General:
@@ -20,19 +21,52 @@ Commands:
 	✓ name
 	✓ pokerus
 	- item
-✓ status
 - update
 	- species
 	- name
 	- pokerus
 	- item
-- battle
-	- ev update
-	- multiple at once
-- vitamin
 
 Potential features:
 - history - record past battles/changes for a pokemon.
 - undo - undo the previous command.
 - Add an "interactive" mode for continuous input.
-- Python 3.0 compatability - should be easy since all dependencies are from the standard library.
+✓ Python 3.0 compatability - should be easy since all dependencies are from the standard library. MDS EDIT: yes they are thank you
+
+-------------------------------------------------------------------------------------------------------------------
+
+MDS TO DO LIST:
+---------------
+
+✓ Status
+✓ Battle
+	✓ Ev update
+	✓ Multiple at once
+	✓ Undo battle (subtract EVs)
+✓ History
+	✓ Add to history
+	✓ Remove from history
+	- For each tracked pokemon
+	- When updated with items / pokerus (e.g. if pokerus is added, have a timestamp of when this happened)
+- Item
+	- EXP share will be a tricky one, 2 pokemon evs in one battle
+- Vitamins
+- Update
+
+
+
+
+Potential Features:
+-------------------
+
+-> maybe make history also by pokemon name, rather than just using pokemon id
+-> lvl 1 to 100 EVS calculation
+-> overview command that prints status + history etc
+-> Evs between 0-510 (255 max stat) - data validation basically
+-> Breakdown of where Evs came from (get this from history)
+-> import history to another pokemon (in case file deleted)
+
+Bugs:
+-----
+
+-> when you delete / empty the history file, everything breaks
