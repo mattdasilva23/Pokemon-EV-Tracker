@@ -144,6 +144,9 @@ class Pokemon(object):
             raise ValueError("Invalid item '%s'" % item)
         self._item = ITEMS[item] if item is not None else None
 
+    def clear_evs(self):
+        self.evs = EvSet()
+
     def status(self):
         status = [str(self) + '\n']
         if self.pokerus:

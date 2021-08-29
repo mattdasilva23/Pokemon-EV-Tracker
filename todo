@@ -71,6 +71,7 @@ Potential Features:
 - Evs between 0-510 (255 max stat) - data validation basically
 - Breakdown of where Evs came from (get this from history)
 - import history to another pokemon (in case file deleted)
+- code need a general clean up e.g. history.activePokeID could be coded better
 
 Bugs:
 -----

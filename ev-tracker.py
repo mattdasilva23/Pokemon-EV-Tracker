@@ -26,7 +26,7 @@ class History(object):
 
     @classmethod 
     def from_json(cls, filename):
-        # print('\n\tfrom_json\n\t----------')
+        # print('\n\tfrom_json_history\n\t----------')
         history = cls(filename)
         try:
             fp = open(filename, 'r')
@@ -51,7 +51,6 @@ class History(object):
 
     def get_active_poke_history(self):
         if self.activePokeID not in self._historyArr:
-            print('hello')
             self._historyArr[self.activePokeID] = []
             _save_history()
         return self._historyArr[self.activePokeID]
@@ -75,8 +74,7 @@ class History(object):
 
     def clear_history(self):
         print('\nHistory cleared')
-        for poke_id in self._historyArr:
-            self._historyArr[poke_id] = []
+        self._historyArr[self.activePokeID] = []
 
     # if true, view full history (rather than latest 5 pokemon)
     def set_full(self, boolean):
@@ -85,13 +83,12 @@ class History(object):
     def __str__(self):
         # print('>> history __str__')
         currentHistory = self.get_active_poke_history()
-        myStr = 'Checking history for current active pokemon: ' + str(_tracker.active)
+        myStr = 'Checking history for current active pokemon: ' + str(_tracker.active) + '\n'
         if (len(currentHistory) > 0):
             elements = currentHistory
-            # print latest 5 history
             if (len(currentHistory) > 5 and not self.full):
-                elements = currentHistory[-5:]
-                myStr = '(' + str(len(currentHistory)-5) + ' other pokemon in history)\n.........\n'
+                elements = currentHistory[-5:]      # print latest 5 history
+                myStr += '(' + str(len(currentHistory)-5) + ' other pokemon in history)\n.........\n'
             myStr += '\n'.join([str(date) + ' | #' + str(ID).zfill(3) + ' | ' + str((Pokemon.get_pokemon_by_id(ID).name)) for ID, date in elements])
             return myStr + '\n'
         return 'History file is empty for active pokemon!'
@@ -105,7 +102,7 @@ class Tracker(object):
 
     @classmethod
     def from_json(cls, filename):
-        # print('\n\tfrom_json\n\t----------')
+        # print('\n\tfrom_json_tracker\n\t----------')
         # print(filename)
         tracker = cls(filename)
         try:
@@ -228,8 +225,10 @@ def _cmd_track(args):
 def _cmd_active(args):
     if args.switch:
         _tracker.active = _tracker.get_pokemon(args.switch)
+        _history.activePokeID = str(_tracker.active.id)
         _save_tracker()
-    print('\n' + str(_tracker.active))
+    print('\n' + _tracker.active.status())
+    print(_history)
 
 
 def _cmd_list(args):
@@ -237,9 +236,8 @@ def _cmd_list(args):
 
 
 def _cmd_status(args):
-    if args.id is None:
-        pokemon = _tracker.active
-    else:
+    pokemon = _tracker.active
+    if args.id is not None:
         pokemon = _tracker.get_pokemon(args.id)
     print('\n' + pokemon.status())
 
@@ -296,11 +294,25 @@ def _cmd_battle(args):
         else:
             _history.add_to_history(species.id)
     
-    print('\nStatus:\n----------\n' + str(pokemon.status()))
-    print('\nHistory:\n----------\n' + str(_history))
-
-    _save_history()
+    print('\n' + str(pokemon.status()))
+    print(_history)
     _save_tracker()
+    _save_history()
+    
+
+
+def _cmd_clear(args):
+    print('Clearing data...')
+    pokemon = _tracker.active
+    if args.id is not None:
+        pokemon = _tracker.get_pokemon(args.id)
+    pokemon.clear_evs()
+    _history.clear_history()
+
+    print('\n' + str(pokemon.status()))
+    print(_history)
+    _save_tracker()
+    _save_history()
 
 
 def _cmd_release(args):
@@ -314,7 +326,6 @@ def _cmd_testing(args):
     _history.add_to_history(649)
     _save_history()
     print(_history)
-
 
 def _build_parser():
     parser = argparse.ArgumentParser(prog='ev', description='A small utility for keeping track of Effort Values while training Pokemon.')
@@ -347,8 +358,8 @@ def _build_parser():
     # current;y history only works for 1 pokemon, not based on active (i.e. cant switch to different pokemon in the list and see battle history for that newly switched pokemon)
     # the optional args 'add' and 'remove' are not recommended to use; they are there for manual overriding & testing purposes - these methods will automatically be called when battling with a pokemon (and when a battle is undone)
     history_parser = subparsers.add_parser('history', help='Show the history of battles for the active Pokemon')
-    history_parser.add_argument('--clear', '-c', action='store_true', default=False, help='Clear history')
     history_parser.add_argument('--full', '-f', action='store_true', default=False, help='Print the full history of battled pokemon. By default, the history will only print the 5 most recent pokemon battled')
+    history_parser.add_argument('--clear', '-c', action='store_true', default=False, help='DEV COMMAND (not recommended) Clear battle history for specific pokemon')
     history_parser.add_argument('--add', '-a', help='DEV COMMAND (not recommended) Choose specific pokemon to add to the battle history')
     history_parser.add_argument('--remove', '-r', help='DEV COMMAND (not recommended) Choose specific pokemon to remove from the battle history (will remove the latest pokemon found)')
     history_parser.set_defaults(func=_cmd_history)
@@ -363,8 +374,12 @@ def _build_parser():
     battle_parser.add_argument('species', help='Name or id of Pokemon species to battle')
     battle_parser.add_argument('--id', '-i', type=int, help='Choose specific pokemon - default is active')
     battle_parser.add_argument('--number', '-n', type=int, help='Number of times you want to battle')
-    battle_parser.add_argument('--undo', '-u', action='store_true', default=False, help='Undo battle with a specific pokemon (subtract EVS)')
+    battle_parser.add_argument('--undo', '-u', action='store_true', default=False, help='Undo battle with a specific pokemon (subtract EVs)')
     battle_parser.set_defaults(func=_cmd_battle)
+
+    clear_parser = subparsers.add_parser('clear', help='Clear a Pokemon\'s details (EVs, History, etc.)')
+    clear_parser.add_argument('--id', '-i', type=int, help='Choose specific pokemon - default is active')
+    clear_parser.set_defaults(func=_cmd_clear)
 
     release_parser = subparsers.add_parser('release', help='Stop tracking a Pokemon')
     release_parser.add_argument('id', type=int)
