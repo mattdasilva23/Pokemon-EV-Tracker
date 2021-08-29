@@ -47,7 +47,7 @@ by default. You can see the current Pokemon using the `active` command, or the
 	> No tracked Pokemon is marked as active.
 	> Set an active pokemon using the 'active --switch' command.
 	
-	ev active --switch=2
+	ev active --switch 2
 	> 2 Axew
 	
 	ev list
@@ -56,13 +56,19 @@ by default. You can see the current Pokemon using the `active` command, or the
 
 You can switch the active Pokemon using the `active` command:
 
-	ev active --switch=1
+	ev active --switch 1
 	> 1 Ultrados (Magikarp)
 
 You can get the full status of the current Pokemon using the `status` command:
 
 	ev status
 	> 1 Ultrados (Magikarp)
+	> 000 | +0.00 | HP
+	> 000 | +0.00 | Attack
+	> 000 | +0.00 | Defense        
+	> 000 | +0.00 | Special Attack 
+	> 000 | +0.00 | Special Defense
+	> 000 | +0.00 | Speed
 	> Pokerus
 	> No EVs
 
@@ -75,9 +81,8 @@ To record battles and update EV values, use the `battle` command:
 You can also record multiple battles using the `-n` or `--number` option of 
 the `battle` command:
 
-	ev battle Lillipup -n3
-	> Battled 3 × #506 Lillipup   +1 Attack
-	> 1 Ultrados (Magikarp) - +6 Attack
+	ev battle Lillipup -n 3
+	> Lillipup x3 | +3 Attack (Evs)
 	
 	ev status
 	> 1 Ultrados (Magikarp)
@@ -134,3 +139,10 @@ issues then please let me know.
 If you'd like to contribute or provide feedback, then 
 [github](https://github.com/mathewbyrne/ev-tracker) is the best place to do 
 that.
+
+
+
+
+
+
+UPDATE THIS AT SOME POINT

@@ -7,7 +7,7 @@ import argparse
 import json
 from datetime import datetime
 from shutil import copyfile
-from pokemon import Pokemon, EvSet, Species
+from pokemon import Pokemon
 import pokedex
 import pprint
 
@@ -83,8 +83,8 @@ class History(object):
         self.full = boolean
 
     def __str__(self):
-        print('>> history __str__')
-        print('Current pokemon active: ' + str(_tracker.active))
+        # print('>> history __str__')
+        print('Checking history for current active pokemon: ' + str(_tracker.active))
         currentHistory = self.get_active_poke_history()
         myStr = ''
         if (len(currentHistory) > 0):
