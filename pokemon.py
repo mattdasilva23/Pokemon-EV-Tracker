@@ -151,7 +151,7 @@ class Pokemon(object):
         if self.item:
             status.append(self.item)
         status.append(self.evs.verbose())
-        return '\n'.join(status)
+        return '\n'.join(status) + '\n'
 
     def listing(self, active):
         padding = '* ' if self is active else '  '

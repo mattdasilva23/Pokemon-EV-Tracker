@@ -84,9 +84,8 @@ class History(object):
 
     def __str__(self):
         # print('>> history __str__')
-        print('Checking history for current active pokemon: ' + str(_tracker.active))
         currentHistory = self.get_active_poke_history()
-        myStr = ''
+        myStr = 'Checking history for current active pokemon: ' + str(_tracker.active)
         if (len(currentHistory) > 0):
             elements = currentHistory
             # print latest 5 history
@@ -94,7 +93,7 @@ class History(object):
                 elements = currentHistory[-5:]
                 myStr = '(' + str(len(currentHistory)-5) + ' other pokemon in history)\n.........\n'
             myStr += '\n'.join([str(date) + ' | #' + str(ID).zfill(3) + ' | ' + str((Pokemon.get_pokemon_by_id(ID).name)) for ID, date in elements])
-            return myStr
+            return myStr + '\n'
         return 'History file is empty for active pokemon!'
 
 class Tracker(object):
@@ -264,6 +263,10 @@ def _cmd_history(args):
     print(_history)
 
 
+def _cmd_overview(args):
+    print('\n' + _tracker.active.status())
+    print(_history)
+
 def _cmd_update(args):
     # do pokerus + items here
     raise NotImplementedError('update command is not yet implemented.')
@@ -352,6 +355,9 @@ def _build_parser():
 
     update_parser = subparsers.add_parser('update', help='Update a tracked Pokemon\'s details')
     update_parser.set_defaults(func=_cmd_update)
+
+    overview_parser = subparsers.add_parser('overview', help='Summary of the active Pokemon\'s stats and battle history')
+    overview_parser.set_defaults(func=_cmd_overview)
 
     battle_parser = subparsers.add_parser('battle', help='Record a battle for a tracked Pokemon')
     battle_parser.add_argument('species', help='Name or id of Pokemon species to battle')

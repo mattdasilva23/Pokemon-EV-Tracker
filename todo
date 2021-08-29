@@ -53,6 +53,11 @@ MDS TO DO LIST:
 - Vitamins
 - Update
 - Update README.md with new changes
+✓ Overview
+
+
+
+
 
 
 
@@ -60,14 +65,14 @@ MDS TO DO LIST:
 Potential Features:
 -------------------
 
--> maybe make history also by pokemon name, rather than just using pokemon id
--> lvl 1 to 100 EVS calculation
--> overview command that prints status + history etc
--> Evs between 0-510 (255 max stat) - data validation basically
--> Breakdown of where Evs came from (get this from history)
--> import history to another pokemon (in case file deleted)
+- maybe make history also by pokemon name, rather than just using pokemon id
+- lvl 1 to 100 EVS calculation
+✓ overview command that prints status + history etc
+- Evs between 0-510 (255 max stat) - data validation basically
+- Breakdown of where Evs came from (get this from history)
+- import history to another pokemon (in case file deleted)
 
 Bugs:
 -----
 
--> when you delete / empty the history file, everything breaks
+- when you delete / empty the history file, everything breaks
