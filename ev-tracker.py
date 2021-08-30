@@ -7,7 +7,7 @@ import argparse
 import json
 from datetime import datetime
 from shutil import copyfile
-from pokemon import Pokemon
+from pokemon import EvSet, Pokemon
 import pokedex
 import pprint
 
@@ -49,20 +49,25 @@ class History(object):
         json.dump(data, fp)
         fp.close()
 
-    def get_active_poke_history(self):
+    def get_active_poke_history_arr(self):
         if self.activePokeID not in self._historyArr:
             self._historyArr[self.activePokeID] = []
             _save_history()
         return self._historyArr[self.activePokeID]
 
     # add pokemon you battled to history - will always history to the active pokemon 
-    def add_to_history(self, id):
+    def add_poke_to_history(self, id, evs):
         dateNow = datetime.today().strftime('%d-%m-%Y-%H:%M:%S')
-        self.get_active_poke_history().append([id, dateNow])
-        print('\nAdded to history: ' + str(id) + ' (' + str(Pokemon.get_pokemon_by_id(id).name) + ') at: ' + dateNow)
+        self.get_active_poke_history_arr().append([id, dateNow, str(evs)])
+        print('\nAdded Pokemon to history: ' + str(id) + ' (' + str(Pokemon.get_pokemon_by_id(id).name) + ') at ' + dateNow)
 
-    def remove_from_history(self, id):
-        currentHistory = self.get_active_poke_history()
+    def add_item_to_history(self, item):
+        dateNow = datetime.today().strftime('%d-%m-%Y-%H:%M:%S')
+        self.get_active_poke_history_arr().append([item, dateNow, "---"])
+        print('\nAdded Item to history: ' + str(item) + ' at ' + dateNow)
+
+    def remove_poke_from_history(self, id):
+        currentHistory = self.get_active_poke_history_arr()
         # loop through backwards to remove latest pokemon, otherwise it will remove earliest from the list
         for i, v in enumerate(currentHistory[::-1]):
             if id in v:
@@ -76,20 +81,35 @@ class History(object):
         print('\nHistory cleared')
         self._historyArr[self.activePokeID] = []
 
+    # temporary function to add evs to history json file 
+    # def recalculate_history(self):
+    #     print(self.get_active_poke_history_arr())
+    #     for e in self.get_active_poke_history_arr():
+    #         evs = str(Pokemon.get_pokemon_by_id(e[0]).evs)
+    #         e[2] = evs.__str__()
+    #         print(evs)
+    #     _save_history()
+    #     print(_history)
+
     # if true, view full history (rather than latest 5 pokemon)
     def set_full(self, boolean):
         self.full = boolean
 
     def __str__(self):
         # print('>> history __str__')
-        currentHistory = self.get_active_poke_history()
+        currentHistory = self.get_active_poke_history_arr()
         myStr = 'Checking history for current active pokemon: ' + str(_tracker.active) + '\n'
         if (len(currentHistory) > 0):
             elements = currentHistory
             if (len(currentHistory) > 5 and not self.full):
                 elements = currentHistory[-5:]      # print latest 5 history
                 myStr += '(' + str(len(currentHistory)-5) + ' other pokemon in history)\n.........\n'
-            myStr += '\n'.join([str(date) + ' | #' + str(ID).zfill(3) + ' | ' + str((Pokemon.get_pokemon_by_id(ID).name)) for ID, date in elements])
+            myStr += '\n'.join([
+                str(date) + ' | '
+                + ('#' + str(ele).zfill(3) if type(ele) is int else "Item") + ' | '
+                + '{:^13}'.format((Pokemon.get_pokemon_by_id(ele).name) if type(ele) is int else ele) + ' | '
+                + str(evs)
+                for ele, date, evs in elements])
             return myStr + '\n'
         return 'History file is empty for active pokemon!'
 
@@ -113,7 +133,6 @@ class Tracker(object):
                 tracker.track(pokemon)
                 if 'active' in data and int(data['active']) == pokemon.id:
                     tracker.active = pokemon
-                    # tracker.active._itemName = spec['item']
         except IOError:
             pass  # Ignore missing tracking file.
         return tracker
@@ -228,7 +247,7 @@ def _cmd_active(args):
         _tracker.active = _tracker.get_pokemon(args.switch)
         _history.activePokeID = str(_tracker.active.id)
         _save_tracker()
-        print('Pokemon Swtiched!')
+        print('\nPokemon Swtiched!')
     print('\n' + _tracker.active.status())
     print(_history)
 
@@ -250,11 +269,14 @@ def _cmd_history(args):
         _save_history()
         return
     if args.add:
-        _history.add_to_history(pokedex.search(args.add).id)
+        _history.add_poke_to_history(pokedex.search(args.add).id)
         _save_history()
         return
+    if args.addi:
+        _history.add_item_to_history(args.addi)
+        _save_history()
     if args.remove:
-        _history.remove_from_history(pokedex.search(args.remove).id)
+        _history.remove_poke_from_history(pokedex.search(args.remove).id)
         _save_history()
         return
     if args.full:
@@ -267,10 +289,19 @@ def _cmd_overview(args):
     print('\n' + _tracker.active.status())
     print(_history)
 
+
 def _cmd_update(args):
     # do pokerus + items here
-    raise NotImplementedError('update command is not yet implemented.')
-
+    pokemon = _tracker.active
+    if args.id is not None:
+        pokemon = _tracker.get_pokemon(args.id)
+    if (args.item):
+        print("adding item")
+        pokemon.set_item(args.item)
+        _history.add_item_to_history(args.item)
+        _save_tracker()
+        _save_history()
+        
 
 def _cmd_battle(args):
     species = pokedex.search(args.species)
@@ -290,11 +321,11 @@ def _cmd_battle(args):
         gainedEvs = pokemon.battle(species, num)
         print("\nGained Evs:\n----------\n" + str(species.name) + ' x' + str(num) + ' | ' + str(gainedEvs) + ' (Evs)')
 
-    for i in range(0, num):
+    for _ in range(0, num):
         if args.undo:
-            _history.remove_from_history(species.id)
+            _history.remove_poke_from_history(species.id)
         else:
-            _history.add_to_history(species.id)
+            _history.add_poke_to_history(species.id, gainedEvs)
     
     print('\n' + str(pokemon.status()))
     print(_history)
@@ -303,12 +334,13 @@ def _cmd_battle(args):
     
 
 def _cmd_clear(args):
-    print('Clearing data...')
+    print('\nClearing data...')
     pokemon = _tracker.active
     if args.id is not None:
         pokemon = _tracker.get_pokemon(args.id)
     pokemon.clear_evs()
     pokemon.clear_item()
+    print("\nPokemon data cleared")
     _history.clear_history()
 
     print('\n' + str(pokemon.status()))
@@ -325,9 +357,13 @@ def _cmd_release(args):
 
 
 def _cmd_testing(args):
-    _tracker.active.set_item("Macho Brace")
-    _save_tracker()
-    print(_tracker.active.get_item())
+    # _history.recalculate_hisStory()
+    # _tracker.active.set_item("Macho Brace")
+    # _history.add_item_to_history("Macho Brace")
+    # _save_tracker()
+    # _save_history()
+    pass
+
 
 def _build_parser():
     parser = argparse.ArgumentParser(prog='ev', description='A small utility for keeping track of Effort Values while training Pokemon.')
@@ -357,16 +393,19 @@ def _build_parser():
     status_parser.add_argument('--id', '-i', type=int)
     status_parser.set_defaults(func=_cmd_status)
 
-    # current;y history only works for 1 pokemon, not based on active (i.e. cant switch to different pokemon in the list and see battle history for that newly switched pokemon)
+    # currently history only works for 1 pokemon, not based on active (i.e. cant switch to different pokemon in the list and see battle history for that newly switched pokemon)
     # the optional args 'add' and 'remove' are not recommended to use; they are there for manual overriding & testing purposes - these methods will automatically be called when battling with a pokemon (and when a battle is undone)
     history_parser = subparsers.add_parser('history', help='Show the history of battles for the active Pokemon')
     history_parser.add_argument('--full', '-f', action='store_true', default=False, help='Print the full history of battled pokemon. By default, the history will only print the 5 most recent pokemon battled')
     history_parser.add_argument('--clear', '-c', action='store_true', default=False, help='DEV COMMAND (not recommended) Clear battle history for specific pokemon')
     history_parser.add_argument('--add', '-a', help='DEV COMMAND (not recommended) Choose specific pokemon to add to the battle history')
+    history_parser.add_argument('--addi', '-ai', type=str, help='DEV COMMAND (not recommended) Choose specific item to add to the history')
     history_parser.add_argument('--remove', '-r', help='DEV COMMAND (not recommended) Choose specific pokemon to remove from the battle history (will remove the latest pokemon found)')
     history_parser.set_defaults(func=_cmd_history)
 
     update_parser = subparsers.add_parser('update', help='Update a tracked Pokemon\'s details')
+    update_parser.add_argument('--id', '-i', type=int)
+    update_parser.add_argument('--item', '-it', help='Name of item to give to the active Pokemon')
     update_parser.set_defaults(func=_cmd_update)
 
     overview_parser = subparsers.add_parser('overview', help='Summary of the active Pokemon\'s stats and battle history')

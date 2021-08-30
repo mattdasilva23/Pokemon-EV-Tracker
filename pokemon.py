@@ -17,7 +17,7 @@ class EvSet(object):
     MAX_STAT = 255
     MAX_EV = 510
 
-    operator = ''
+    operator = '+'
 
     @staticmethod
     def label(stat):
@@ -146,6 +146,9 @@ class Pokemon(object):
     def get_item(self):
         return self._itemName
 
+    def get_evs(self):
+        return self.evs
+
     def clear_evs(self):
         self.evs = EvSet()
 
@@ -181,7 +184,6 @@ class Pokemon(object):
             self.evs += evs * number
         else:
             self.evs -= evs * number
-
         return (evs * number)
 
     def to_dict(self):
