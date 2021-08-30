@@ -103,16 +103,17 @@ class Tracker(object):
     @classmethod
     def from_json(cls, filename):
         # print('\n\tfrom_json_tracker\n\t----------')
-        # print(filename)
         tracker = cls(filename)
         try:
             fp = open(filename, 'r')
             data = json.load(fp)
+            # pprint.pprint(data)
             for spec in data['pokemon']:
                 pokemon = Pokemon.from_dict(spec)
                 tracker.track(pokemon)
                 if 'active' in data and int(data['active']) == pokemon.id:
                     tracker.active = pokemon
+                    # tracker.active._itemName = spec['item']
         except IOError:
             pass  # Ignore missing tracking file.
         return tracker
@@ -121,12 +122,12 @@ class Tracker(object):
     def to_json(tracker, filename=None):
         # print('\n\tto_json\n\t----------')
         filename = tracker.filename if filename is None else filename
-        # print(filename)
         fp = open(filename, 'w')
         data = {}
         if tracker.has_active():
             data['active'] = tracker.active.id
         data['pokemon'] = [pokemon.to_dict() for pokemon in tracker.pokemon.values()]
+        # pprint.pprint(data)
         json.dump(data, fp)
         fp.close()
 
@@ -227,6 +228,7 @@ def _cmd_active(args):
         _tracker.active = _tracker.get_pokemon(args.switch)
         _history.activePokeID = str(_tracker.active.id)
         _save_tracker()
+        print('Pokemon Swtiched!')
     print('\n' + _tracker.active.status())
     print(_history)
 
@@ -300,13 +302,13 @@ def _cmd_battle(args):
     _save_history()
     
 
-
 def _cmd_clear(args):
     print('Clearing data...')
     pokemon = _tracker.active
     if args.id is not None:
         pokemon = _tracker.get_pokemon(args.id)
     pokemon.clear_evs()
+    pokemon.clear_item()
     _history.clear_history()
 
     print('\n' + str(pokemon.status()))
@@ -323,9 +325,9 @@ def _cmd_release(args):
 
 
 def _cmd_testing(args):
-    _history.add_to_history(649)
-    _save_history()
-    print(_history)
+    _tracker.active.set_item("Macho Brace")
+    _save_tracker()
+    print(_tracker.active.get_item())
 
 def _build_parser():
     parser = argparse.ArgumentParser(prog='ev', description='A small utility for keeping track of Effort Values while training Pokemon.')
@@ -409,14 +411,3 @@ if __name__ == '__main__':
         print("Set an active pokemon using the 'active --switch' command.")
     except NoTrackedPokemon as e:
         print("No tracked Pokemon with id '%d' was found." % e.id)
-
-
-
-
-"""
-
-current history:
-
-{"history": [[271, "27-08-2021-14:09:06"], [271, "27-08-2021-14:09:09"], [271, "27-08-2021-14:09:09"], [121, "27-08-2021-14:11:43"], [276, "27-08-2021-15:24:40"], [121, "28-08-2021-01:13:31"], [136, "28-08-2021-01:16:22"], [371, "28-08-2021-01:17:13"], [136, "28-08-2021-01:17:41"], [276, "28-08-2021-01:18:44"], [251, "28-08-2021-01:56:41"], [312, "28-08-2021-01:57:35"], [312, "28-08-2021-01:59:30"], [235, "28-08-2021-02:01:00"], [396, "28-08-2021-02:01:51"], [251, "28-08-2021-02:02:25"], [235, "28-08-2021-02:05:41"], [414, "28-08-2021-02:06:00"], [251, "28-08-2021-02:06:29"], [251, "28-08-2021-02:07:18"], [233, "28-08-2021-02:08:47"], [136, "28-08-2021-02:10:38"], [136, "28-08-2021-02:16:08"], [371, "28-08-2021-02:20:00"], [307, "28-08-2021-02:20:48"], [307, "28-08-2021-02:21:29"], [488, "28-08-2021-02:22:48"], [121, "28-08-2021-02:23:47"], [136, "28-08-2021-02:24:32"], [235, "28-08-2021-11:07:33"], [312, "28-08-2021-11:09:17"], [396, "28-08-2021-11:09:48"], [312, "28-08-2021-11:10:44"], [183, "28-08-2021-11:11:33"], [175, "28-08-2021-11:12:07"], [41, "28-08-2021-11:12:20"], [235, "28-08-2021-11:13:11"], [236, "28-08-2021-11:13:51"], [13, "28-08-2021-11:14:04"], [415, "28-08-2021-11:15:42"], [240, "28-08-2021-11:16:25"], [415, "28-08-2021-11:16:54"], [209, "28-08-2021-11:17:25"], [20, "28-08-2021-11:17:52"], [280, "28-08-2021-11:45:07"], [236, "28-08-2021-11:45:26"], [236, "28-08-2021-11:45:49"], [10, "28-08-2021-11:46:32"], [353, "28-08-2021-11:53:42"], [387, "28-08-2021-12:47:45"], [83, "28-08-2021-12:53:57"]]}
-
-"""

@@ -9,7 +9,6 @@ ITEMS = {
     'Power Anklet': lambda evs: evs + EvSet(speed=4)
 }
 
-
 class EvSet(object):
 
     STATS = ['hp', 'attack', 'defense', 'special_attack', 'special_defense', 'speed']
@@ -72,7 +71,7 @@ class EvSet(object):
         return ', '.join(ev_string)
 
     def verbose(self):
-        ev_string = [str(ev).zfill(3) + ' | +' + format(ev/4, '.2f') + ' | ' + str(EvSet.label(stat)) for stat, ev in self.to_dict().items()]
+        ev_string = [str(ev).zfill(3) + ' | +' + ('{0:05.2f}'.format(ev/4)).zfill(2) + ' | ' + str(EvSet.label(stat)) for stat, ev in self.to_dict().items()]
         return '\n'.join(ev_string)
 
     def clone(self):
@@ -114,7 +113,6 @@ class Pokemon(object):
         import pokedex
         return pokedex.fetch_by_id(ID)
 
-
     def __init__(self, id, species, name=None, item=None, pokerus=False, evs=None):
         self.id = int(id)
         self.species = species
@@ -143,18 +141,25 @@ class Pokemon(object):
         if item is not None and item not in ITEMS:
             raise ValueError("Invalid item '%s'" % item)
         self._item = ITEMS[item] if item is not None else None
+        self._itemName = item
+
+    def get_item(self):
+        return self._itemName
 
     def clear_evs(self):
         self.evs = EvSet()
 
+    def clear_item(self):
+        self.item = None
+
     def status(self):
-        status = [str(self) + '\n']
-        if self.pokerus:
-            status.append('Pokerus')
+        status = str(self)
         if self.item:
-            status.append(self.item)
-        status.append(self.evs.verbose())
-        return '\n'.join(status) + '\n'
+            status +=  ' | ' + str(self.get_item())
+        if self.pokerus:
+            status += ' | Pokerus'
+        status += '\n' + str(self.evs.verbose()) + '\n'
+        return status
 
     def listing(self, active):
         padding = '* ' if self is active else '  '
@@ -181,7 +186,7 @@ class Pokemon(object):
 
     def to_dict(self):
         return {'species': self.species.id, 'name': self._name,
-                'pokerus': self.pokerus, 'item': self.item,
+                'pokerus': self.pokerus, 'item': self._itemName,
                 'evs': self.evs.to_dict(), 'id': self.id}
 
     def __str__(self):

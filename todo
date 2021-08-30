@@ -48,7 +48,7 @@ MDS TO DO LIST:
 	✓ Remove from history
 	✓ For each tracked pokemon
 	- When updated with items / pokerus (e.g. if pokerus is added, have a timestamp of when this happened)
-- Item
+✓ Item
 	- EXP share will be a tricky one, 2 pokemon evs in one battle
 - Vitamins
 - Update
@@ -72,6 +72,7 @@ Potential Features:
 - Breakdown of where Evs came from (get this from history)
 - import history to another pokemon (in case file deleted)
 - code need a general clean up e.g. history.activePokeID could be coded better
+- double battles?
 
 Bugs:
 -----
