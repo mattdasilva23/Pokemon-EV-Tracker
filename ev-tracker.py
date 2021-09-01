@@ -318,7 +318,13 @@ def _cmd_battle(args):
         undoEvs = pokemon.battle(species, num, args.undo)
         print("\nUndo Battle:\n----------\n" + str(species.name) + ' x' + str(num) + ' | ' + str(undoEvs) + ' (Evs)')
     else:
+        if (pokemon.evs.check_if_maxed_510() >= 510):
+            print("MAXED")
+            return
         gainedEvs = pokemon.battle(species, num)
+        # if (gainedEvs.compare_evs(EvSet())):
+        #     print("ZERO")
+        #     return
         print("\nGained Evs:\n----------\n" + str(species.name) + ' x' + str(num) + ' | ' + str(gainedEvs) + ' (Evs)')
 
     for _ in range(0, num):

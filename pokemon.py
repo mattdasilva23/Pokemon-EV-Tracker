@@ -17,7 +17,7 @@ class EvSet(object):
     MAX_STAT = 255
     MAX_EV = 510
 
-    operator = '+'
+    operator = ''
 
     @staticmethod
     def label(stat):
@@ -33,10 +33,21 @@ class EvSet(object):
         # print('\n\tEVS init\n\t-----------')
         # print(self)
 
+    # this works, but can definitely be improved
     def __iadd__(self, other):
+        print('IADD')
+        print('self', self)
+        print('other', other)
         EvSet.operator = '+'
         for stat in EvSet.STATS:
+            print('before', stat, self.__dict__[stat])
+            print('before total', self.check_if_maxed_510())
             self.__dict__[stat] += other.__dict__[stat]
+            print(self.check_if_maxed_510())
+            if (self.check_if_maxed_510() >= 510):
+                print("maxed 510")
+                self.__dict__[stat] -= (self.check_if_maxed_510() - EvSet.MAX_EV)
+            print('after', stat, self.__dict__[stat])
         return self
 
     def __add__(self, other):
@@ -48,6 +59,8 @@ class EvSet(object):
         EvSet.operator = '-'
         for stat in EvSet.STATS:
             self.__dict__[stat] -= other.__dict__[stat]
+            if (self.__dict__[stat] < 0):
+                self.__dict__[stat] = 0
         return self
 
     def __sub__(self, other):
@@ -76,6 +89,41 @@ class EvSet(object):
 
     def clone(self):
         return EvSet(**self.to_dict())
+
+    def check_if_maxed_510(self):
+        total = 0
+        for stat in EvSet.STATS:
+            total += self.__dict__[stat]
+        return total
+
+    def check_evs_max_stat_255(self, other):
+        print('\ncheck_evs_max_stat_255')
+        for stat in EvSet.STATS:
+            myStat = self.__dict__[stat]
+            myOtherStat = other.__dict__[stat]
+            print(myStat, myOtherStat, stat)
+            if (myStat + myOtherStat > EvSet.MAX_STAT):
+                print('adjusting stat', myOtherStat - ((myStat + myOtherStat) - EvSet.MAX_STAT))
+                other.__dict__[stat] = myOtherStat - ((myStat + myOtherStat) - EvSet.MAX_STAT)
+        return other
+    
+    def check_evs_max_510(self, other):
+        print('\ncheck_evs_max_510')
+        for stat in EvSet.STATS:
+            myStat = self.__dict__[stat]
+            myOtherStat = other.__dict__[stat]
+            print(myStat, myOtherStat, stat)
+            # if (myStat + myOtherStat )
+
+
+        return other
+
+    def compare_evs(self, other):
+        for stat in EvSet.STATS:
+            if (self.__dict__[stat] != other.__dict__[stat]):
+                print(self.__dict__[stat])
+                return False
+        return True
 
     def to_dict(self):
         dict = {}
@@ -161,7 +209,8 @@ class Pokemon(object):
             status +=  ' | ' + str(self.get_item())
         if self.pokerus:
             status += ' | Pokerus'
-        status += '\n' + str(self.evs.verbose()) + '\n'
+        status += '\n' + str(self.evs.verbose())
+        status += '\n' + str(self.evs.check_if_maxed_510()) + ' | Total EVs\n'
         return status
 
     def listing(self, active):
@@ -175,15 +224,22 @@ class Pokemon(object):
         increment can be multiplied by number to simulate multiple battles.
         '''
         evs = species.evs.clone()
+
         if self.item is not None:
             evs = self.item(evs)
         if self.pokerus:
             evs *= 2
 
+        # this doesn't work for undo
+        evs = (self.evs.check_evs_max_stat_255(evs))
+        evs = (self.evs.check_evs_max_510(evs))
+        print('New Evs: ', evs)
+
         if not undo:
             self.evs += evs * number
         else:
             self.evs -= evs * number
+    
         return (evs * number)
 
     def to_dict(self):
